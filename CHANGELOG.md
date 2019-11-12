@@ -5,6 +5,18 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
+## [1.4.6] - 2019-11-11
+### Changed
+-- rest_client and requests_client add auth retry
+
+## [1.4.5] - 2019-11-08
+### Changed
+-- message_sender add auto retry
+
+## [1.4.4] - 2019-11-08
+### Added
+- add retry in function send_task 
+- add retry in rabbitmq_consumer
 
 ## [1.3.3] - 2019-10-21
 ### Added

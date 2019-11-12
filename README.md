@@ -213,7 +213,7 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
 
 ```
   from sparrow_cloud.restclient import rest_client
-  rest_client.post(SERVICE_CONF, api_path, json=api_list)
+  rest_client.post(SERVICE_CONF, api_path, timeout=5, json=api_list)
 ```
     参数说明:
     SERVICE_CONF = {
@@ -222,7 +222,12 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
     },
     ENV_NAME: 用来覆盖 consul 的环境变量名
     VALUE: consul服务注册名字
-    ps:
+    timeout: 
+        非必传，默认超时时间5秒
+        传参方式：
+            timeout=5       # 5秒为connect 和 read 的 timeout
+            timeout=(3, 2)  # 分别定制：connect 和 read 的 timeout
+            timeout=None    # Request 永远等待
       剩余参数与 requests.get/post 等方法保持一致
       
 
@@ -232,7 +237,7 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
 
 ```
   from sparrow_cloud.restclient import requests_client
-  requests_client.post(SERVICE_CONF, api_path, json=api_list)
+  requests_client.post(SERVICE_CONF, api_path, timeout=5, json=api_list)
 ```
     参数说明:
     SERVICE_CONF = {
@@ -241,6 +246,12 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
     },
     ENV_NAME: 用来覆盖 consul 的环境变量名
     VALUE: consul服务注册名字
+    timeout: 
+        非必传，默认超时时间5秒
+        传参方式：
+            timeout=5       # 5秒为connect 和 read 的 timeout
+            timeout=(3, 2)  # 分别定制：connect 和 read 的 timeout
+            timeout=None    # Request 永远等待
     ps:
       剩余参数与 requests.get/post 等方法保持一致      
 
@@ -269,12 +280,14 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
         data = send_task(exchange=exchange, 
                          routing_key=routing_key, 
                          message_code=message_code, 
+                         retry_times=3,
                          *args,
                          **kwargs)
         ps:
            exchange: 交换机
            routing_key: 路由
            message_code: 消息码
+           retry_times: 重试次数，非必填，默认重试次数为3次（每次间隔1秒）
 ```
 
 
@@ -302,7 +315,10 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
                         "VALUE": "sparrow-demo",
                 },
                 "API_PATH": "/api/sparrow_task/task/update/",
-            }
+            },
+            "RETRY_TIMES": 3,
+            "INTERVAL_TIME": 3,
+            "HEARTBEAT": 600,
         }
 
         QUEUE_CONF_1 = {
@@ -323,6 +339,9 @@ PS: 如果未配置 CONSUL_CLIENT_ADDR, 需要配置该参数, 权限中间件�
                     MESSAGE_BACKEND_CONF
                         BACKEND_SERVICE_CONF # 依赖consul服务的配置
                         API_PATH # api 路径
+                    RETRY_TIMES # 错误重试次数，默认3次
+                    INTERVAL_TIME   # 错误重试间隔，默认3秒
+                    HEARTBEAT   # 消费者与rabbitmq心跳检测间隔，默认600秒
                 QUEUE_CONF_1  # 队列的配置
                     QUEUE  # 队列名称
                     TARGET_FUNC_MAP  # 队列消费的任务（字典中的键为message code，对应的值为执行该消息的任务函数路径字符串）
